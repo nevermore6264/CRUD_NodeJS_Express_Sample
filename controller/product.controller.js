@@ -33,43 +33,8 @@ function create(req, res, next) {
     .create(req.body)
     .then(() => {
       res.json({ message: "Product created" });
-      sendOtp(req.body.name);
     })
     .catch(next);
-}
-
-async function sendOtp(name) {
-  const myHeaders = new Headers();
-  myHeaders.append(
-    "Authorization",
-    "App 43e715adc8f7794682bc64291af6a996-5c1d2e3f-a98f-455d-add1-30de7a28461e"
-  );
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Accept", "application/json");
-
-  const raw = JSON.stringify({
-    messages: [
-      {
-        destinations: [{ to: "84862478150" }],
-        from: "ServiceSMS",
-        text: "Sản phẩm đã được lưu: " + name,
-      },
-    ],
-  });
-
-  const requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: raw,
-    redirect: "follow",
-  };
-
-  fetch(
-    "https://3gmyqw.api.infobip.com/sms/2/text/advanced",
-    requestOptions
-  ).then((result) => {
-    console.log(result); // Log phản hồi từ dịch vụ SMS
-  });
 }
 
 function update(req, res, next) {
