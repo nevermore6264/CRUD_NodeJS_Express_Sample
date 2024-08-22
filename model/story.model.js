@@ -3,7 +3,10 @@ module.exports = (sequelize, DataTypes) => {
     title: { type: DataTypes.STRING, allowNull: false },
     content: { type: DataTypes.TEXT, allowNull: false },
     publishedAt: { type: DataTypes.DATE, allowNull: true },
-    status: { type: DataTypes.ENUM("Published", "Draft"), allowNull: false },
+    status: {
+      type: DataTypes.ENUM("Published", "Draft"),
+      allowNull: false,
+    },
     authorId: {
       type: DataTypes.INTEGER,
       references: { model: "Authors", key: "id" },
@@ -21,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       as: "category",
     });
     Story.hasMany(models.Comment, { foreignKey: "storyId", as: "comments" });
+    Story.hasMany(models.Favorite, { foreignKey: "storyId", as: "favorites" });
   };
 
   return Story;
