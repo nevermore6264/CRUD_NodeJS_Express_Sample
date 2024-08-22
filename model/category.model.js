@@ -1,17 +1,15 @@
 module.exports = (sequelize, DataTypes) => {
-    const Category = sequelize.define("Category", {
-      name: { type: DataTypes.STRING, allowNull: false },
-      description: { type: DataTypes.STRING, allowNull: false },
-    }, {
-      timestamps: false, // Disable timestamps
+  const Category = sequelize.define("Category", {
+    name: { type: DataTypes.STRING, allowNull: false },
+    description: { type: DataTypes.TEXT, allowNull: true },
+  });
+
+  Category.associate = (models) => {
+    Category.hasMany(models.Story, {
+      foreignKey: "categoryId",
+      as: "stories",
     });
-  
-    Category.associate = (models) => {
-      Category.hasMany(models.Product, {
-        foreignKey: 'categoryId',
-        as: 'products'
-      });
-    };
-  
-    return Category;
   };
+
+  return Category;
+};
