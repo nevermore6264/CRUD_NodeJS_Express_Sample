@@ -26,7 +26,6 @@ async function initialize() {
 
   // Tải các model
   let models = [
-    require("../model/product.model.js"),
     require("../model/category.model.js"),
     require("../model/user.model.js"),
     require("../model/author.model.js"),
