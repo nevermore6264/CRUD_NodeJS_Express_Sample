@@ -4,7 +4,7 @@
     "license": "MIT",
     "scripts": {
         "start": "node ./server.js",
-        "start:dev": "nodemon ./server.js"
+        "crawl": "node ../crawler/crawler_data.js"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",

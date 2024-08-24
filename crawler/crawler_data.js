@@ -5,45 +5,49 @@ const { stringify } = require("csv-stringify");
 (async () => {
   // Mở trình duyệt mới bằng Puppeteer.
   const browser = await puppeteer.launch();
-  // Mở một tab mới.
   const page = await browser.newPage();
 
-  // Điều hướng đến URL của trang truyện cười.
-  await page.goto("https://truyencuoihay.vn/");
+  // Điều hướng đến trang web.
+  await page.goto("https://www.sachhayonline.com/truyen-cuoi");
 
-  // Chờ cho đến khi phần tử xuất hiện trên trang để đảm bảo rằng trang đã tải hoàn toàn.
-  await page.waitForSelector(".entry");
+  // Chờ phần tử chứa danh sách truyện cười tải.
+  await page.waitForSelector(".content-list");
 
-  // Trích xuất dữ liệu từ trang.
-  const items = await page.evaluate(() => {
-    const itemNodes = document.querySelectorAll(".entry");
-    const itemList = [];
+  // Lấy dữ liệu truyện cười.
+  const stories = await page.evaluate(() => {
+    const storyNodes = document.querySelectorAll(".content-list .story");
+    const storyList = [];
 
-    itemNodes.forEach((node) => {
+    storyNodes.forEach((node) => {
       // Lấy tiêu đề truyện cười.
-      const titleElement = node.querySelector(".entry-title a");
+      const titleElement = node.querySelector(".content-item-title a");
       const title = titleElement ? titleElement.innerText.trim() : null;
 
-      // Lấy nội dung truyện cười.
-      const contentElement = node.querySelector(".entry-content p");
-      const content = contentElement ? contentElement.innerText.trim() : null;
+      // Lấy liên kết truyện cười.
+      const link = titleElement ? titleElement.href : null;
 
-      // Chỉ đẩy vào mảng nếu tất cả các giá trị không null.
-      if (title && content) {
-        itemList.push({ title, content });
+      // Lấy mô tả ngắn của truyện cười.
+      const descriptionElement = node.querySelector(".content-item-summary");
+      const description = descriptionElement
+        ? descriptionElement.innerText.trim()
+        : null;
+
+      // Chỉ đẩy vào mảng nếu tiêu đề và liên kết không null.
+      if (title && link) {
+        storyList.push({ title, link, description });
       }
     });
 
-    return itemList;
+    return storyList;
   });
 
-  console.log(items);
+  console.log(stories);
 
   // Đóng trình duyệt.
   await browser.close();
 
   // Lưu dữ liệu vào tệp CSV.
-  await saveDataToCSV(items, "truyencuoi_data.csv");
+  await saveDataToCSV(stories, "stories.csv");
 })();
 
 // Hàm để lưu dữ liệu vào file CSV.
@@ -52,7 +56,7 @@ async function saveDataToCSV(data, filename) {
   const writetabStream = fs.createWriteStream(filename);
 
   // Các cột (tiêu đề) trong file CSV.
-  const columns = ["title", "content"];
+  const columns = ["title", "link", "description"];
 
   // Tạo một đối tượng stringifier để chuyển đổi dữ liệu thành CSV.
   const stringifier = stringify({
