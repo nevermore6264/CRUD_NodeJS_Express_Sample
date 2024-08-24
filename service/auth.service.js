@@ -24,7 +24,7 @@ async function login({ email, password }) {
   }
 
   // Tạo token JWT
-  const token = jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ sub: user.id, role: user.role }, config.secret, { expiresIn: '7d' });
 
   return {
     ...omitPassword(user.get()),
