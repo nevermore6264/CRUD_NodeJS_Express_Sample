@@ -5,7 +5,7 @@ const storyService = require("../service/story.service"); // Sửa lại đườ
 
 // Lên lịch cho các nhiệm vụ được thực thi trên máy chủ.
 // Chạy nhiệm vụ mỗi 5 giây
-cron.schedule("*/5 * * * * *", function () {
+cron.schedule("*/20 * * * * *", function () {
   console.log("running a task every 5 seconds");
   updateStories();
 });
