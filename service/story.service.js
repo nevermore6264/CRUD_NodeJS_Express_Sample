@@ -10,7 +10,20 @@ module.exports = {
 };
 
 async function getAll() {
-  return await db.Story.findAll();
+  return await db.Story.findAll({
+    include: [
+      {
+        model: db.Category,
+        as: "category", // Alias này cần trùng với alias trong model Story khi thiết lập association
+        attributes: ["id", "name", "description"], // Chọn các cột cần lấy từ bảng Category
+      },
+      {
+        model: db.Author,
+        as: "author", // Alias này cần trùng với alias trong model Story khi thiết lập association
+        attributes: ["id", "name", "bio"], // Chọn các cột cần lấy từ bảng Author
+      },
+    ],
+  });
 }
 
 async function getById(id) {
