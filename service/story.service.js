@@ -6,6 +6,7 @@ module.exports = {
   create,
   update,
   delete: _delete,
+  truncate,
 };
 
 async function getAll() {
@@ -56,4 +57,17 @@ async function getStory(id) {
   const story = await db.Story.findByPk(id);
   if (!story) throw "Story not found";
   return story;
+}
+
+// Hàm để xóa tất cả dữ liệu trong bảng 'stories'
+async function truncate() {
+  try {
+    await Story.destroy({
+      where: {},
+      truncate: true,
+    });
+    console.log("All stories have been deleted.");
+  } catch (error) {
+    console.error("Error truncating stories:", error);
+  }
 }

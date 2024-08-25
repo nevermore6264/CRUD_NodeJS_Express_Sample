@@ -6,10 +6,12 @@ const storyService = require("../service/story.service");
 const authorize = require("_middleware/authorize");
 const isAdmin = require("_middleware/isAdmin");
 
+// Routes dành cho admin và người dùng
+router.get("/", authorize, getAllStories); // Lấy danh sách truyện (dành cho tất cả người dùng đã xác thực)
+router.get("/:id", authorize, getStoryById); // Lấy thông tin truyện theo ID (dành cho tất cả người dùng đã xác thực)
+
 // Routes dành cho admin
 router.post("/create", authorize, isAdmin, createStorySchema, createStory); // Tạo mới truyện
-router.get("/", authorize, isAdmin, getAllStories); // Lấy danh sách truyện
-router.get("/:id", authorize, isAdmin, getStoryById); // Lấy thông tin truyện theo ID
 router.put("/:id", authorize, isAdmin, updateStorySchema, updateStory); // Cập nhật truyện
 router.delete("/:id", authorize, isAdmin, deleteStory); // Xóa truyện
 
