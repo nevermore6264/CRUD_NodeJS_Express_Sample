@@ -31,6 +31,10 @@ async function getById(id) {
 }
 
 async function create(params) {
+  console.log("Start >>>>>>>>>>>>>>>>>>");
+  console.log(params);
+  console.log("End >>>>>>>>>>>>>>>>>>");
+
   // Kiểm tra
   if (await db.Story.findOne({ where: { title: params.title } })) {
     throw 'Tiêu đề "' + params.title + '" đã được sử dụng';

@@ -11,7 +11,7 @@ router.get("/", authorize, getAllStories); // Lấy danh sách truyện (dành c
 router.get("/:id", authorize, getStoryById); // Lấy thông tin truyện theo ID (dành cho tất cả người dùng đã xác thực)
 
 // Routes dành cho admin
-router.post("/create", authorize, isAdmin, createStorySchema, createStory); // Tạo mới truyện
+router.post("/", authorize, isAdmin, createStorySchema, createStory); // Tạo mới truyện
 router.put("/:id", authorize, isAdmin, updateStorySchema, updateStory); // Cập nhật truyện
 router.delete("/:id", authorize, isAdmin, deleteStory); // Xóa truyện
 
@@ -61,6 +61,9 @@ function createStorySchema(req, res, next) {
     title: Joi.string().required(),
     content: Joi.string().required(),
     authorId: Joi.number().required(),
+    publishedAt: Joi.date().optional(), // Trường này có thể không bắt buộc
+    status: Joi.string().valid("Published", "Draft").required(),
+    categoryId: Joi.number().required(),
   });
   validateRequest(req, next, schema);
 }
@@ -70,6 +73,9 @@ function updateStorySchema(req, res, next) {
     title: Joi.string().empty(""),
     content: Joi.string().empty(""),
     authorId: Joi.number().empty(""),
+    publishedAt: Joi.date().optional(), // Trường này có thể không bắt buộc
+    status: Joi.string().valid("Published", "Draft").optional(),
+    categoryId: Joi.number().optional(),
   });
   validateRequest(req, next, schema);
 }
