@@ -67,8 +67,23 @@ async function _delete(id) {
 // helper functions
 
 async function getStory(id) {
-  const story = await db.Story.findByPk(id);
-  if (!story) throw "Story not found";
+  const story = await db.Story.findByPk(id, {
+    include: [
+      {
+        model: db.Category,
+        as: "category", // Alias này cần trùng với alias trong model Story khi thiết lập association
+        attributes: ["id", "name", "description"], // Chọn các cột cần lấy từ bảng Category
+      },
+      {
+        model: db.Author,
+        as: "author", // Alias này cần trùng với alias trong model Story khi thiết lập association
+        attributes: ["id", "name", "bio"], // Chọn các cột cần lấy từ bảng Author
+      },
+    ],
+  });
+
+  if (!story) throw new Error("Story not found");
+
   return story;
 }
 
