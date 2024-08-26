@@ -6,7 +6,7 @@ module.exports = {
   create,
   update,
   delete: _delete,
-  truncate
+  truncate,
 };
 
 async function getAll() {
@@ -18,30 +18,30 @@ async function getById(id) {
 }
 
 async function create(params) {
-  // validate
+  // Kiểm tra tên danh mục đã tồn tại hay chưa
   if (await db.Category.findOne({ where: { name: params.name } })) {
-    throw 'Category name "' + params.name + '" is already registered';
+    throw 'Tên danh mục "' + params.name + '" đã được đăng ký';
   }
 
   const category = new db.Category(params);
 
-  // save category
+  // Lưu danh mục
   await category.save();
 }
 
 async function update(id, params) {
   const category = await getCategory(id);
 
-  // validate
+  // Kiểm tra tên danh mục đã thay đổi và nếu đã tồn tại
   const nameChanged = params.name && category.name !== params.name;
   if (
     nameChanged &&
     (await db.Category.findOne({ where: { name: params.name } }))
   ) {
-    throw 'Category name "' + params.name + '" is already taken';
+    throw 'Tên danh mục "' + params.name + '" đã được sử dụng';
   }
 
-  // copy params to category and save
+  // Cập nhật thông tin danh mục và lưu lại
   Object.assign(category, params);
   await category.save();
 }
@@ -51,11 +51,11 @@ async function _delete(id) {
   await category.destroy();
 }
 
-// helper functions
+// Hàm hỗ trợ
 
 async function getCategory(id) {
   const category = await db.Category.findByPk(id);
-  if (!category) throw "Category not found";
+  if (!category) throw "Không tìm thấy danh mục";
   return category;
 }
 
@@ -67,8 +67,8 @@ async function truncate() {
       truncate: true, // Chỉ thị xóa sạch bảng
       restartIdentity: true, // Reset auto-increment của ID
     });
-    console.log("Categories table truncated.");
+    console.log("Bảng danh mục đã được xóa sạch.");
   } catch (error) {
-    console.error("Error truncating categories table:", error);
+    console.error("Lỗi khi xóa sạch bảng danh mục:", error);
   }
 }

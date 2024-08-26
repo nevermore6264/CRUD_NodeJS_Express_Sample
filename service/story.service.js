@@ -31,30 +31,30 @@ async function getById(id) {
 }
 
 async function create(params) {
-  // validate
+  // Kiểm tra
   if (await db.Story.findOne({ where: { title: params.title } })) {
-    throw 'Title "' + params.title + '" is already taken';
+    throw 'Tiêu đề "' + params.title + '" đã được sử dụng';
   }
 
   const story = new db.Story(params);
 
-  // save story
+  // Lưu truyện
   await story.save();
 }
 
 async function update(id, params) {
   const story = await getStory(id);
 
-  // validate
+  // Kiểm tra
   const titleChanged = params.title && story.title !== params.title;
   if (
     titleChanged &&
     (await db.Story.findOne({ where: { title: params.title } }))
   ) {
-    throw 'Title "' + params.title + '" is already taken';
+    throw 'Tiêu đề "' + params.title + '" đã được sử dụng';
   }
 
-  // copy params to story and save
+  // Sao chép tham số vào story và lưu
   Object.assign(story, params);
   await story.save();
 }
@@ -64,7 +64,7 @@ async function _delete(id) {
   await story.destroy();
 }
 
-// helper functions
+// Hàm hỗ trợ
 
 async function getStory(id) {
   const story = await db.Story.findByPk(id, {
@@ -82,7 +82,7 @@ async function getStory(id) {
     ],
   });
 
-  if (!story) throw new Error("Story not found");
+  if (!story) throw new Error("Không tìm thấy truyện");
 
   return story;
 }
@@ -90,12 +90,12 @@ async function getStory(id) {
 // Hàm để xóa tất cả dữ liệu trong bảng 'stories'
 async function truncate() {
   try {
-    await Story.destroy({
+    await db.Story.destroy({
       where: {},
       truncate: true,
     });
-    console.log("All stories have been deleted.");
+    console.log("Tất cả truyện đã được xóa.");
   } catch (error) {
-    console.error("Error truncating stories:", error);
+    console.error("Lỗi khi xóa toàn bộ truyện:", error);
   }
 }
