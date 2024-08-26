@@ -15,6 +15,12 @@ router.post("/", authorize, isAdmin, createStorySchema, createStory); // Tạo m
 router.put("/:id", authorize, isAdmin, updateStorySchema, updateStory); // Cập nhật truyện
 router.delete("/:id", authorize, isAdmin, deleteStory); // Xóa truyện
 
+// API để "like" một truyện
+router.post("/:id/like", authorize, likeStory);
+
+// API để "unlike" một truyện
+router.post("/:id/unlike", authorize, unlikeStory);
+
 module.exports = router;
 
 // Các hàm xử lý route
@@ -51,6 +57,22 @@ function deleteStory(req, res, next) {
   storyService
     .delete(req.params.id)
     .then(() => res.json({ message: "Story deleted successfully" }))
+    .catch(next);
+}
+
+// Hàm xử lý "like" truyện
+async function likeStory(req, res, next) {
+  storyService
+    .like(req.params.id, req.user.id) // Truyền ID của truyện và ID của người dùng
+    .then(() => res.json({ message: "Liked story successfully" }))
+    .catch(next);
+}
+
+// Hàm xử lý "unlike" truyện
+async function unlikeStory(req, res, next) {
+  storyService
+    .unlike(req.params.id, req.user.id) // Truyền ID của truyện và ID của người dùng
+    .then(() => res.json({ message: "Unliked story successfully" }))
     .catch(next);
 }
 

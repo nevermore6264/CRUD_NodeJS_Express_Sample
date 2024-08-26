@@ -7,6 +7,8 @@ module.exports = {
   update,
   delete: _delete,
   truncate,
+  like,
+  unlike,
 };
 
 async function getAll() {
@@ -31,10 +33,6 @@ async function getById(id) {
 }
 
 async function create(params) {
-  console.log("Start >>>>>>>>>>>>>>>>>>");
-  console.log(params);
-  console.log("End >>>>>>>>>>>>>>>>>>");
-
   // Kiểm tra
   if (await db.Story.findOne({ where: { title: params.title } })) {
     throw 'Tiêu đề "' + params.title + '" đã được sử dụng';
@@ -102,4 +100,36 @@ async function truncate() {
   } catch (error) {
     console.error("Lỗi khi xóa toàn bộ truyện:", error);
   }
+}
+
+async function like(storyId, userId) {
+  // Kiểm tra xem truyện đã tồn tại hay chưa
+  const story = await db.Story.findByPk(storyId);
+  if (!story) throw "Story not found";
+
+  // Kiểm tra xem người dùng đã thích truyện này chưa
+  const alreadyLiked = await db.Favorite.findOne({
+    where: { storyId: storyId, userId: userId },
+  });
+
+  if (alreadyLiked) throw "You have already liked this story";
+
+  // Thêm một lượt thích mới
+  await db.Favorite.create({ storyId, userId });
+}
+
+async function unlike(storyId, userId) {
+  // Kiểm tra xem truyện đã tồn tại hay chưa
+  const story = await db.Story.findByPk(storyId);
+  if (!story) throw "Story not found";
+
+  // Kiểm tra xem người dùng đã thích truyện này chưa
+  const favorite = await db.Favorite.findOne({
+    where: { storyId: storyId, userId: userId },
+  });
+
+  if (!favorite) throw "You have not liked this story yet";
+
+  // Xóa lượt thích
+  await favorite.destroy();
 }
