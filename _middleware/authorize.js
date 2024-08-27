@@ -13,7 +13,7 @@ module.exports = function authorize(req, res, next) {
     if (err) return res.status(401).json({ message: "Unauthorized" });
 
     // Thêm thông tin người dùng vào request
-    req.user = user;
+    req.user = { userId: user.sub, role: user.role }; // Extract user ID from 'sub' and role from 'role'
     next();
   });
 };

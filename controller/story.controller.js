@@ -62,8 +62,11 @@ function deleteStory(req, res, next) {
 
 // Hàm xử lý "like" truyện
 async function likeStory(req, res, next) {
+  // Lấy ID của truyện từ params và ID của người dùng từ token đã được giải mã
+  const storyId = req.params.id;
+  const userId = req.user.userId; // Ensure this is set by the authentication middleware
   storyService
-    .like(req.params.id, req.user.id) // Truyền ID của truyện và ID của người dùng
+    .like(storyId, userId) // Truyền ID của truyện và ID của người dùng
     .then(() => res.json({ message: "Liked story successfully" }))
     .catch(next);
 }
