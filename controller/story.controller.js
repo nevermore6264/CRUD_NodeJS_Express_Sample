@@ -73,8 +73,11 @@ async function likeStory(req, res, next) {
 
 // Hàm xử lý "unlike" truyện
 async function unlikeStory(req, res, next) {
+  // Lấy ID của truyện từ params và ID của người dùng từ token đã được giải mã
+  const storyId = req.params.id;
+  const userId = req.user.userId; // Ensure this is set by the authentication middleware
   storyService
-    .unlike(req.params.id, req.user.id) // Truyền ID của truyện và ID của người dùng
+    .unlike(storyId, userId) // Truyền ID của truyện và ID của người dùng
     .then(() => res.json({ message: "Unliked story successfully" }))
     .catch(next);
 }
