@@ -11,29 +11,54 @@ module.exports = {
   unlike,
 };
 
-async function getAll() {
-  return await db.Story.findAll({
+async function getAll(userId) {
+  // Lấy tất cả truyện cùng với thông tin danh mục, tác giả, và trạng thái đã thích
+  const stories = await db.Story.findAll({
     include: [
       {
         model: db.Category,
-        as: "category", // Alias này cần trùng với alias trong model Story khi thiết lập association
-        attributes: ["id", "name", "description"], // Chọn các cột cần lấy từ bảng Category
+        as: "category", // Alias cần trùng với alias trong thiết lập association của model Story
+        attributes: ["id", "name", "description"],
       },
       {
         model: db.Author,
-        as: "author", // Alias này cần trùng với alias trong model Story khi thiết lập association
-        attributes: ["id", "name", "bio"], // Chọn các cột cần lấy từ bảng Author
+        as: "author", // Alias cần trùng với alias trong thiết lập association của model Story
+        attributes: ["id", "name", "bio"],
+      },
+      {
+        model: db.Favorite,
+        as: "favorites", // Alias cần trùng với alias trong thiết lập association của model Story
+        where: { userId: userId }, // Lọc danh sách yêu thích theo userId
+        required: false, // Sử dụng LEFT JOIN để bao gồm truyện ngay cả khi không có lượt thích từ người dùng này
+        attributes: [], // Không cần lấy thuộc tính từ model Favorite
       },
     ],
+    attributes: {
+      include: [
+        [
+          db.sequelize.literal(
+            `(SELECT COUNT(*) FROM Favorites WHERE Favorites.storyId = Story.id AND Favorites.userId = ${userId})`
+          ),
+          "likedByUser",
+        ],
+      ],
+    },
+  });
+
+  // Thêm trường likedByUser boolean vào mỗi truyện dựa trên kết quả COUNT
+  return stories.map((story) => {
+    const storyJson = story.toJSON();
+    storyJson.likedByUser = storyJson.likedByUser > 0;
+    return storyJson;
   });
 }
 
-async function getById(id) {
-  return await getStory(id);
+async function getById(id, userId) {
+  return await getStory(id, userId);
 }
 
 async function create(params) {
-  // Kiểm tra
+  // Kiểm tra trùng tiêu đề
   if (await db.Story.findOne({ where: { title: params.title } })) {
     throw 'Tiêu đề "' + params.title + '" đã được sử dụng';
   }
@@ -47,7 +72,7 @@ async function create(params) {
 async function update(id, params) {
   const story = await getStory(id);
 
-  // Kiểm tra
+  // Kiểm tra trùng tiêu đề
   const titleChanged = params.title && story.title !== params.title;
   if (
     titleChanged &&
@@ -56,7 +81,7 @@ async function update(id, params) {
     throw 'Tiêu đề "' + params.title + '" đã được sử dụng';
   }
 
-  // Sao chép tham số vào story và lưu
+  // Sao chép tham số vào truyện và lưu
   Object.assign(story, params);
   await story.save();
 }
@@ -66,30 +91,48 @@ async function _delete(id) {
   await story.destroy();
 }
 
-// Hàm hỗ trợ
-
-async function getStory(id) {
+// Hàm hỗ trợ lấy truyện theo ID
+async function getStory(id, userId) {
   const story = await db.Story.findByPk(id, {
     include: [
       {
         model: db.Category,
-        as: "category", // Alias này cần trùng với alias trong model Story khi thiết lập association
-        attributes: ["id", "name", "description"], // Chọn các cột cần lấy từ bảng Category
+        as: "category", // Alias cần trùng với alias trong thiết lập association của model Story
+        attributes: ["id", "name", "description"],
       },
       {
         model: db.Author,
-        as: "author", // Alias này cần trùng với alias trong model Story khi thiết lập association
-        attributes: ["id", "name", "bio"], // Chọn các cột cần lấy từ bảng Author
+        as: "author", // Alias cần trùng với alias trong thiết lập association của model Story
+        attributes: ["id", "name", "bio"],
+      },
+      {
+        model: db.Favorite,
+        as: "favorites", // Alias cần trùng với alias trong thiết lập association của model Story
+        where: { userId: userId }, // Lọc danh sách yêu thích theo userId
+        required: false, // Sử dụng LEFT JOIN để bao gồm truyện ngay cả khi không có lượt thích từ người dùng này
+        attributes: [], // Không cần lấy thuộc tính từ model Favorite
       },
     ],
+    attributes: {
+      include: [
+        [
+          db.sequelize.literal(
+            `(SELECT COUNT(*) FROM Favorites WHERE Favorites.storyId = Story.id AND Favorites.userId = ${userId})`
+          ),
+          "likedByUser",
+        ],
+      ],
+    },
   });
 
   if (!story) throw new Error("Không tìm thấy truyện");
 
-  return story;
+  const storyJson = story.toJSON();
+  storyJson.likedByUser = storyJson.likedByUser > 0;
+  return storyJson;
 }
 
-// Hàm để xóa tất cả dữ liệu trong bảng 'stories'
+// Hàm xóa tất cả dữ liệu trong bảng 'stories'
 async function truncate() {
   try {
     await db.Story.destroy({
@@ -103,32 +146,32 @@ async function truncate() {
 }
 
 async function like(storyId, userId) {
-  // Kiểm tra xem truyện đã tồn tại hay chưa
+  // Kiểm tra xem truyện có tồn tại hay không
   const story = await db.Story.findByPk(storyId);
-  if (!story) throw "Story not found";
+  if (!story) throw "Không tìm thấy truyện";
 
   // Kiểm tra xem người dùng đã thích truyện này chưa
   const alreadyLiked = await db.Favorite.findOne({
     where: { storyId: storyId, userId: userId },
   });
 
-  if (alreadyLiked) throw "You have already liked this story";
+  if (alreadyLiked) throw "Bạn đã thích truyện này rồi";
 
-  // Thêm một lượt thích mới
+  // Thêm lượt thích mới
   await db.Favorite.create({ storyId, userId });
 }
 
 async function unlike(storyId, userId) {
-  // Kiểm tra xem truyện đã tồn tại hay chưa
+  // Kiểm tra xem truyện có tồn tại hay không
   const story = await db.Story.findByPk(storyId);
-  if (!story) throw "Story not found";
+  if (!story) throw "Không tìm thấy truyện";
 
   // Kiểm tra xem người dùng đã thích truyện này chưa
   const favorite = await db.Favorite.findOne({
     where: { storyId: storyId, userId: userId },
   });
 
-  if (!favorite) throw "You have not liked this story yet";
+  if (!favorite) throw "Bạn chưa thích truyện này";
 
   // Xóa lượt thích
   await favorite.destroy();

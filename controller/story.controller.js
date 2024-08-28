@@ -33,15 +33,17 @@ function createStory(req, res, next) {
 }
 
 function getAllStories(req, res, next) {
+  const userId = req.user.userId;
   storyService
-    .getAll()
+    .getAll(userId)
     .then((stories) => res.json(stories))
     .catch(next);
 }
 
 function getStoryById(req, res, next) {
+  const userId = req.user.userId;
   storyService
-    .getById(req.params.id)
+    .getById(req.params.id, userId)
     .then((story) => res.json(story))
     .catch(next);
 }
