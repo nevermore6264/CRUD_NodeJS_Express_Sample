@@ -73,3 +73,5 @@
 - Users can have multiple Comments and Favorites.
 - Stories belong to one Category and one Author, but a Category can have many Stories, and an Author can write many Stories.
 - Stories can have multiple Comments and can be favorited by multiple Users.
+
+HieuTT121
