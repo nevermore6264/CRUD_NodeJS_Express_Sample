@@ -5,6 +5,7 @@ const validateRequest = require("_middleware/validate-request");
 const storyService = require("../service/story.service");
 const authorize = require("_middleware/authorize");
 const isAdmin = require("_middleware/isAdmin");
+const gTTS = require("gtts"); // Import thư viện gTTS
 
 // Routes dành cho admin và người dùng
 router.get("/", authorize, getAllStories); // Lấy danh sách truyện (dành cho tất cả người dùng đã xác thực)
@@ -20,6 +21,8 @@ router.post("/:id/like", authorize, likeStory);
 
 // API để "unlike" một truyện
 router.post("/:id/unlike", authorize, unlikeStory);
+
+router.get("/:id/read-aloud", authorize, readStoryAloud); // Đọc truyện thành giọng nói
 
 module.exports = router;
 
@@ -82,6 +85,29 @@ async function unlikeStory(req, res, next) {
     .unlike(storyId, userId) // Truyền ID của truyện và ID của người dùng
     .then(() => res.json({ message: "Unliked story successfully" }))
     .catch(next);
+}
+
+// Hàm xử lý đọc truyện thành giọng nói
+async function readStoryAloud(req, res, next) {
+  try {
+    const storyId = req.params.id;
+    const userId = req.user.userId;
+
+    // Lấy thông tin truyện từ service
+    const story = await storyService.getById(storyId, userId);
+    const textToRead = story.content; // Đọc nội dung của truyện
+
+    // Tạo instance gTTS với nội dung truyện và ngôn ngữ
+    const gtts = new gTTS(textToRead, "vi"); // 'vi' là mã ngôn ngữ cho tiếng Việt
+
+    // Gửi giọng đọc về client dưới dạng file audio mp3
+    gtts.stream()
+      .pipe(res)
+      .on("finish", () => console.log("Đã hoàn thành chuyển đổi văn bản thành giọng nói"))
+      .on("error", (err) => next(err));
+  } catch (error) {
+    next(error);
+  }
 }
 
 // Schema validation functions
